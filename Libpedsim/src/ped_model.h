@@ -39,11 +39,17 @@ namespace Ped{
 		void tick_one(Ped::Tagent* agent);
 
 		void Ped::Model::tick_many(int start, int end);
-
+		
 
 		// This is the function that our new lab3 implementation of OMP will use
 		//void Ped::Model::tick_move_func(std::vector<Tagent*> agent);
-		void Ped::Model::tick_move_func(Ped::Tagent* agent, int i);
+		//void Ped::Model::tick_move_func(Ped::Tagent* agent, int i);
+		void Ped::Model::tick_move_func(std::vector<Tagent*> region, int i);
+		void Ped::Model::tick_move_func_reg1();
+		void Ped::Model::tick_move_func_reg2();
+		void Ped::Model::tick_move_func_reg3();
+		void Ped::Model::tick_move_func_reg4();
+
 		// Returns the agents of this scenario
 		const std::vector<Tagent*> getAgents() const { return agents; };
 

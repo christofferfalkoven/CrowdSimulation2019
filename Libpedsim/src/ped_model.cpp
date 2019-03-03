@@ -203,36 +203,103 @@ void Ped::Model::tick()
 
 	// OMP 
 	if (implementation == Ped::OMP) {
+		int one = reg->region1.size();
+		int two = reg->region2.size();
+		int three = reg->region3.size();
+		int four = reg->region4.size();
+		int tot = one + two + three + four;
+		//cout << "TOTAL IS......: " << tot << endl;
+
+		if (tot != 452) {
+			//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
+			//cout << "TOTAL IS......: " << tot << endl;
+			exit(0);
+
+		}
 
 		// Set number of threads 
-		omp_set_num_threads(4);
+		omp_set_num_threads(1);
 		size_t size = agents.size();
-		cout << "yo" << endl;
-		for (int i = 0; i < size; i++) {
+		int i = 0;
+		
+		//for (int i = 0; i < size; i++) {
 			#pragma omp parallel sections
 			{
+				#pragma omp section 
+				{
+				//tick_move_func(reg->region1, i);
+					tick_move_func_reg1();
+				/*if (!reg->rightinbox1.empty()) {
 
-				// Commented this function out since we are going to be using the movefunction tick for lab3
-				//tick_one(agents[i]);
+					for (int n = 0; n < reg->rightinbox1.size(); n++) {
+						reg->region1.push_back(reg->rightinbox1[n]);
+					}
+					reg->rightinbox1.clear();
+
+				}*/
+
+				}
+
 
 				#pragma omp section 
 				{
-					
-					if (!reg->rightinbox1.empty()) {
-						//reg->region1.insert(reg->region1.end(), reg->rightinbox1.begin(), reg->rightinbox1.end());
-						//cout << "size is: " << reg->rightinbox1.size() << endl;
-
-						for (int i = 0; i < reg->rightinbox1.size(); i++) {
-							reg->region1.push_back(reg->rightinbox1[i]);
-							//reg->reg1size++;
+					//tick_move_func(reg->region2, i);
+					tick_move_func_reg2();
+				}
+				#pragma omp section 
+				{
+					//tick_move_func(reg->region3, i);
+					tick_move_func_reg3();
+				}
+				#pragma omp section 
+				{
+					//tick_move_func(reg->region4, i);
+					tick_move_func_reg4();
+				}
+			}
+					/*if (!reg->leftinbox2.empty()) {
+						for (int n = 0; n < reg->leftinbox2.size(); n++) {
+							reg->region2.push_back(reg->leftinbox2[n]);
 						}
-						//reg->reg1size = reg->reg1size+ ;
-						reg->rightinbox1.clear();
-						
+						reg->leftinbox2.clear();
 					}
-
+					if (!reg->rightinbox2.empty()) {
+						for (int n = 0; n < reg->rightinbox2.size(); n++) {
+							reg->region2.push_back(reg->rightinbox2[n]);
+						}
+						reg->rightinbox2.clear();
+					}
 				}
 				
+				#pragma omp section 
+				{
+					tick_move_func(reg->region3, i);
+					/*if (!reg->leftinbox3.empty()) {
+						for (int n = 0; n < reg->leftinbox3.size(); n++) {
+							reg->region3.push_back(reg->leftinbox3[n]);
+						}
+						reg->leftinbox3.clear();
+					}
+					if (!reg->rightinbox3.empty()) {
+						for (int n = 0; n < reg->rightinbox3.size(); n++) {
+							reg->region3.push_back(reg->rightinbox3[n]);
+						}
+						reg->rightinbox3.clear();
+					}
+				}
+
+				#pragma omp section 
+				{
+					tick_move_func(reg->region4, i);
+
+					/*if (!reg->leftinbox4.empty()) {
+						for (int n = 0; n < reg->leftinbox4.size(); n++) {
+							reg->region4.push_back(reg->leftinbox4[n]);
+						}
+						reg->leftinbox4.clear();
+					}*/
+				
+				/*
 				#pragma omp section 
 				{
 					if (!reg->leftinbox2.empty()) {
@@ -290,11 +357,10 @@ void Ped::Model::tick()
 						reg->leftinbox4.clear();
 					}
 				}
-			}
-
-		tick_move_func(agents[i], i);
-		}
+				*/
 	}
+
+
 
 
 	// PTHREAD 
@@ -441,182 +507,178 @@ void Ped::Model::tick_vec()
 	
 }
 
+void Ped::Model::tick_move_func_reg1() {
+	for (int p = 0; p < reg->region1.size(); p++) {
+		Tagent* agent = reg->region1[p];
+		//cout << agent << endl;
+		agent->computeNextDesiredPosition();
+		int x = agent->getX();
+		int dstX = agent->getDesiredX();
+		if (x == 39 && dstX == 40) {
+			reg->region1.erase(reg->region1.begin() + p);
+
+			reg->region2.push_back(agent);
+
+		}
+		move(agent);
+	}
+}
+void Ped::Model::tick_move_func_reg2() {
+
+	for (int p = 0; p < reg->region2.size(); p++) {
+		Tagent* agent = reg->region2[p];
+		//cout << agent << endl;
+		agent->computeNextDesiredPosition();
+		int x = agent->getX();
+		int dstX = agent->getDesiredX();
+
+		if (x == 40 && dstX == 39) {
+			//reg->rightinbox1.push_back(agent);
+			//cout << "inne" << endl;
+			reg->region1.push_back(agent);
+
+			reg->region2.erase(reg->region2.begin() + p);
+			//cout << "x == 40 && dstX == 39" << endl;
+
+
+		}
+		// going from region2 to region3
+		else if (x == 79 && dstX == 80) {
+			//reg->leftinbox3.push_back(agent); 
+			reg->region3.push_back(agent);
+			reg->region2.erase(reg->region2.begin() + p);
+
+		}
+		move(agent);
+	}
+}
+
+void Ped::Model::tick_move_func_reg3() {
+	for (int p = 0; p < reg->region3.size(); p++) {
+		Tagent* agent = reg->region3[p];
+		//cout << agent << endl;
+		agent->computeNextDesiredPosition();
+		int x = agent->getX();
+		int dstX = agent->getDesiredX();
+
+		if (x == 80 && dstX == 79) {
+			//reg->rightinbox2.push_back(agent);
+			reg->region2.push_back(agent);
+
+			reg->region3.erase(reg->region3.begin() + p);
+
+		}
+		// going from region3 to region4
+		else if (x == 119 && dstX == 120) {
+			//reg->leftinbox4.push_back(agent);
+			reg->region4.push_back(agent);
+			reg->region3.erase(reg->region3.begin() + p);
+
+		}
+
+		move(agent);
+	}
+}
+ 
+void Ped::Model::tick_move_func_reg4() {
+
+	for (int p = 0; p < reg->region4.size(); p++) {
+		Tagent* agent = reg->region4[p];
+		//cout << agent << endl;
+		agent->computeNextDesiredPosition();
+		int x = agent->getX();
+		int dstX = agent->getDesiredX();
+
+		if (x == 120 && dstX == 119) {
+			//reg->rightinbox3.push_back(agent);
+			reg->region4.erase(reg->region4.begin() + p);
+			reg->region3.push_back(agent);
+
+
+		}
+		cout << x << endl;
+		//DENNA FUCKAR
+		move(agent);
+	}
+}
+
 // This function will be using only the move function logic, we will choose to apply the lab3 using OPENMP
-void Ped::Model::tick_move_func(Ped::Tagent* agent, int i)
-{
+
+void Ped::Model::tick_move_func(std::vector<Tagent*> spec_region, int i) {
+}
+	/*
 	if (implementation == OMP) {
-
-		/*size_t agent_size = agent.size();
-		for (int i = 0; i < agent.size(); i++) {
-			agent[i]->computeNextDesiredPosition();
-			int x = agent[i]->getX();
-			int dstX = agent[i]->getDesiredX();
-			//cout << x << endl;
-			// going from region1 to region2
-			if (x == 199 && dstX > 200) {
-				cout << "hej1" << endl;
-
-				// Push the current agent to region1's right outbox, and then after send it to region2 inbox
-				reg->rightoutbox1.push_back(agent[i]);
-				// Push current agent to region2's leftinbox
-				reg->leftinbox2.push_back(agent[i]);
-				// If region2 has mail 
-				//if (!reg->leftinbox2.empty()) {
-				//	reg->region2.push_back(reg->leftinbox2);
-				//}
-			}
-			// going from region2 to region1
-			else if (x == 201 && dstX < 200) {
-				cout << "hej2" << endl;
-
-				reg->leftoutbox2.push_back(agent[i]);
-				reg->rightinbox1.push_back(agent[i]);
-
-			}
-			// going from region2 to region3
-			else if (x == 399 && dstX > 400) {
-				cout << "hej3" << endl;
-
-				reg->rightoutbox2.push_back(agent[i]);
-				reg->leftinbox3.push_back(agent[i]);
-
-			}
-			// going from region3 to region2
-			else if (x == 401 && dstX < 400) {
-				cout << "hej4" << endl;
-
-				reg->leftoutbox3.push_back(agent[i]);
-				reg->rightinbox2.push_back(agent[i]);
-
-			}
-			// going from region3 to region4
-			else if (x == 599 && dstX > 600) {
-				cout << "hej5" << endl;
-
-				reg->rightoutbox3.push_back(agent[i]);
-				reg->leftinbox4.push_back(agent[i]);
-
-			}
-			// going from region4 to region 3
-			else if (x == 601 && dstX < 600) {
-				cout << "hej6" << endl;
-
-				reg->leftoutbox4.push_back(agent[i]);
-				reg->rightinbox3.push_back(agent[i]);
-
-			}
-
-
-			move(agent[i]);
-			//cout << reg->rightinbox1[i]->getX() << endl; 
-			//printf(" %p\n", reg->leftinbox2[i].getX());
-			//printf(reg->leftinbox2[agent[i]]);
-			//cout << reg->leftinbox2 << endl; 
-
-		} */
-
 		int one = reg->region1.size();
 		int two = reg->region2.size();
 		int three = reg->region3.size();
 		int four = reg->region4.size();
 		int tot = one + two + three + four;
-		cout << "size reg1: " <<  one << "::::::::size reg2: " << two << "::::::::size reg3: " <<three << "::::::::size reg4: " << four<< "::::::::Total: " << tot  << endl;
-		
-		agent->computeNextDesiredPosition();
-		int x = agent->getX();
-		int dstX = agent->getDesiredX();
-		if (tot != 452) {
-			cout << "get x: " << x << " :: dest: " <<dstX << endl;
-			cout << "len before: " << reg->region1.size() << endl;
-			reg->region2.erase(remove(reg->region1.begin(), reg->region1.end(), agent), reg->region2.end());
-			cout << "len after: " << reg->region1.size() << endl;
+		//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
+		cout << "TOTAL IS......: " << tot << endl; 
 
-			exit(0);
+		for (int p = 0; p < spec_region.size(); p++) {
+			Tagent* agent = spec_region[p];
+			//cout << agent << endl;
+			agent->computeNextDesiredPosition();
+			int x = agent->getX();
+			int dstX = agent->getDesiredX();
+
+			if (x == 39 && dstX == 40) {
+				//reg->leftinbox2.push_back(agent);
+				//cout << "first line" << endl;
+				//cout << p << endl;
+				//cout << "The len of region 1 is: " << spec_region.size() << endl;
+				spec_region.erase(spec_region.begin() + p);
+				//cout << "second line" << endl;
+
+				reg->region2.push_back(agent);
+				//cout << "third line" << endl;
+
+				//cout << "x == 39 && dstX == 40" << endl;
+			}
+			else if (x == 40 && dstX == 39) {
+				//reg->rightinbox1.push_back(agent);
+				//cout << "inne" << endl;
+				spec_region.erase(spec_region.begin() + p);
+				reg->region1.push_back(agent);
+				//cout << "x == 40 && dstX == 39" << endl;
+
+				
+			}
+			// going from region2 to region3
+			else if (x == 79 && dstX == 80) {
+				//reg->leftinbox3.push_back(agent); 
+				spec_region.erase(spec_region.begin() + p);
+				reg->region3.push_back(agent);
+
+			}
+			// going from region3 to region2
+			else if (x == 80 && dstX == 79) {
+				//reg->rightinbox2.push_back(agent);
+				spec_region.erase(spec_region.begin() + p);
+				reg->region2.push_back(agent);
+				
+			}
+			// going from region3 to region4
+			else if (x == 119 && dstX == 120) {
+				//reg->leftinbox4.push_back(agent);
+				spec_region.erase(spec_region.begin() + p);
+				reg->region4.push_back(agent);
+				
+			}
+			// going from region4 to region 3
+			else if (x == 120 && dstX == 119) {
+				//reg->rightinbox3.push_back(agent);
+				spec_region.erase(spec_region.begin() + p);
+				reg->region3.push_back(agent);
+				
+
+			}
+			move(agent);
 		}
-		// going from region1 to region2
-		if (x == 39 && dstX == 40) {
-			// Push the current agent to region1's right outb		ox, and then after send it to region2 inbox
-			//reg->rightoutbox1.push_back(agent);
-
-			// Push current agent to region2's leftinbox
-			reg->leftinbox2.push_back(agent);
-
-			//remove it from region 1
-			//här va felet
-			//reg->region1.erase(reg->region1.begin() + i);
-			reg->region1.erase(remove(reg->region1.begin(), reg->region1.end(), agent), reg->region1.end());
-			//reg->reg1size--;
-			//cout << reg->reg1size << endl;
-
-			//cout << "the distance is: " << i<<endl;
-			
-		}
-		// going from region2 to region1
-		else if (x == 40 && dstX == 39) {
-			//cout << "hej2" << endl;
-
-			//reg->leftoutbox2.push_back(agent);
-			reg->rightinbox1.push_back(agent);
-
-			reg->region2.erase(remove(reg->region2.begin(), reg->region2.end(), agent), reg->region2.end());
-
-
-			//reg->region2.erase(reg->region2.begin() + i);
-
-		}
-		// going from region2 to region3. from 80 to 81
-		else if (x == 79 && dstX == 80) {
-			//cout << "hej3" << endl;
-
-			//reg->rightoutbox2.push_back(agent);
-			reg->leftinbox3.push_back(agent); //
-			reg->region2.erase(remove(reg->region2.begin(), reg->region2.end(), agent), reg->region2.end());
-
-			//reg->region2.erase(reg->region2.begin() + i);
-
-		}
-		// going from region3 to region2
-		else if (x == 80 && dstX == 79) {
-			//cout << "hej4" << endl;
-
-			//reg->leftoutbox3.push_back(agent);
-			reg->rightinbox2.push_back(agent);
-			reg->region3.erase(remove(reg->region3.begin(), reg->region3.end(), agent), reg->region3.end());
-
-			//reg->region3.erase(reg->region3.begin() + i);
-
-		}
-		// going from region3 to region4
-		else if (x == 119 && dstX == 120) {
-			//cout << "hej5" << endl;
-
-			//reg->rightoutbox3.push_back(agent);
-			reg->leftinbox4.push_back(agent);
-
-			reg->region3.erase(remove(reg->region3.begin(), reg->region3.end(), agent), reg->region3.end());
-
-			//reg->region3.erase(reg->region3.begin() + i);
-
-		}
-		// going from region4 to region 3
-		else if (x == 120 && dstX == 119) {
-			//cout << "hej6" << endl;
-
-			//reg->leftoutbox4.push_back(agent);
-			reg->rightinbox3.push_back(agent);
-
-			reg->region4.erase(remove(reg->region4.begin(), reg->region4.end(), agent), reg->region4.end());
-
-			//reg->region4.erase(reg->region4.begin() + i);
-
-		}
-
-
-		move(agent);
 	}
-	
 }
-
+*/
 
 // Potential source of parallellism
 void Ped::Model::tick_one(Ped::Tagent* agent)
@@ -673,24 +735,246 @@ void Ped::Model::move(Ped::Tagent *agent)
 	std::vector<std::pair<int, int> > prioritizedAlternatives;
 	std::pair<int, int> pDesired(agent->getDesiredX(), agent->getDesiredY());
 	prioritizedAlternatives.push_back(pDesired);
-
+	// if neg = go left, else go right
 	int diffX = pDesired.first - agent->getX();
 	int diffY = pDesired.second - agent->getY();
-	std::pair<int, int> p1, p2;
+	std::pair<int, int> p1, p2, p3, p4, p5, p6, p7;
+	//om den ej vill gå diagonalt
+	//cout << reg->region1.size << endl;
 	if (diffX == 0 || diffY == 0)
 	{
 		// Agent wants to walk straight to North, South, West or East
 		p1 = std::make_pair(pDesired.first + diffY, pDesired.second + diffX);
 		p2 = std::make_pair(pDesired.first - diffY, pDesired.second - diffX);
+		
+		
+		if (diffX < 0 && diffY == 0) {
+			// go left
+			// go down in Y axis
+			/*p3 = std::make_pair(agent->getX(), pDesired.second + 1);
+			// go up in Y axis
+			p4 = std::make_pair(agent->getX(), pDesired.second - 1);
+			// go right in X axis
+			p5 = std::make_pair(agent->getX() + 1, pDesired.second);
+			// diagonalt nedåt
+			p6 = std::make_pair(agent->getX() + 1, pDesired.second - 1);
+			// diagonalt upp
+			p7 = std::make_pair(agent->getX() + 1, pDesired.second + 1);
+			*/
+			//cout << "getX= " << agent->getX() << ":::::::::" << "pDesired.first= " << pDesired.first << endl;
+			//cout << "getY= " << agent->getY() << ":::::::::" << "pDesired.second= " << pDesired.second << endl;
+
+			p3 = std::make_pair(agent->getX(), agent->getY() + 1);
+			// go up in Y axis
+			p4 = std::make_pair(agent->getX(), agent->getY() - 1);
+			// go right in X axis
+			p5 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
+			// diagonalt nedåt
+			p6 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
+			// diagonalt upp
+			p7 = std::make_pair(agent->getX() + 1, agent->getY());
+		}
+		else if (diffX > 0 && diffY == 0) {
+			// go right
+			// go down
+			/*p3 = std::make_pair(agent->getX(), pDesired.second - 1); // 2
+			// go up in Y axis
+			p4 = std::make_pair(agent->getX(), pDesired.second + 1); // 1
+			// go left
+			p5 = std::make_pair(agent->getX() - 1, pDesired.second); // 5
+			// diagonalt nedåt
+			p6 = std::make_pair(agent->getX() - 1, pDesired.second - 1); // 4
+			// diagonalt upp
+			p7 = std::make_pair(agent->getX() - 1, pDesired.second + 1); // 3
+			*/
+			// go up in Y axis
+			//done
+			p3 = std::make_pair(agent->getX(), agent->getY() + 1);
+			p4 = std::make_pair(agent->getX(), agent->getY() - 1);
+			// diagonalt upp
+			p5 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
+			// diagonalt nedåt
+			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
+			// go left
+			p7 = std::make_pair(agent->getX() - 1, agent->getY());
+		}
+		else if (diffY < 0 && diffX == 0) {
+			//done
+			// go south
+			// go up
+			/*p3 = std::make_pair(pDesired.first, agent->getY() + 1); // 5
+			// go right
+			p4 = std::make_pair(pDesired.first + 1, agent->getY()); // 2
+			// go left
+			p5 = std::make_pair(pDesired.first - 1, agent->getY()); // 1
+			// diagonalt höger
+			p6 = std::make_pair(pDesired.first + 1, agent->getY() + 1); // 3
+			// diagonalt vänster
+			p7 = std::make_pair(pDesired.first - 1, agent->getY() + 1); // 4
+			*/
+			// go left
+			//done
+
+			p3 = std::make_pair(agent->getX() - 1, agent->getY());
+			// go right
+			p4 = std::make_pair(agent->getX() + 1, agent->getY());
+			// diagonalt höger
+			p5 = std::make_pair( agent->getX() + 1, agent->getY() + 1);
+			// diagonalt vänster
+			p6 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
+			p7 = std::make_pair(agent->getX(), agent->getY() + 1);
+
+		}
+		else if (diffY > 0 && diffX == 0) {
+			//done
+			// go north 
+			/*p3 = std::make_pair(pDesired.first, agent->getY() - 1); // 5
+			// go right
+			p4 = std::make_pair(pDesired.first + 1, agent->getY()); // 2
+			// go left
+			p5 = std::make_pair(pDesired.first - 1, agent->getY()); // 1
+			// diagonalt höger
+			p6 = std::make_pair(pDesired.first + 1, agent->getY() - 1); // 3
+			// diagonalt upp
+			p7 = std::make_pair(pDesired.first - 1, agent->getY() - 1); // 4
+			*/
+			//cout << "getX= " << agent->getX() << ":::::::::" << "pDesired.first= " << pDesired.first << endl;
+			//
+			//done
+			
+			p3 = std::make_pair(agent->getX() - 1, agent->getY());
+			// go right
+			p4 = std::make_pair( agent->getX() + 1, agent->getY());
+			// go left
+			p5 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
+			// diagonalt höger
+			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
+			// diagonalt upp
+			p7 = std::make_pair(agent->getX(), agent->getY() - 1); 
+		}
+		
 	}
 	else {
 		// Agent wants to walk diagonally
 		p1 = std::make_pair(pDesired.first, agent->getY());
 		p2 = std::make_pair(agent->getX(), pDesired.second);
+
+		if (diffX < 0 && diffY < 0) {
+			// go left
+			// go up
+			/*p3 = std::make_pair(pDesired.first, pDesired.second + 2); // 2
+			// go right
+			p4 = std::make_pair(pDesired.first + 2, agent->getY()); // 3
+			// go leftup
+			p5 = std::make_pair(pDesired.first + 2, pDesired.second + 2); // 5
+			// go rightup
+			p6 = std::make_pair(pDesired.first + 2, pDesired.second); // 1
+			// go rightdown
+			p7 = std::make_pair(agent->getX(), pDesired.second + 2); // 4
+			*/
+
+			p3 = std::make_pair(agent->getX() +1, agent->getY() - 1);
+			// go right
+			p4 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
+			// go leftup
+			p5 = std::make_pair(agent->getX() + 1, agent->getY());
+			// go rightup
+			p6 = std::make_pair(agent->getX(), agent->getY() + 1);
+			// go rightdown
+			p7 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
+		}
+		else if (diffX < 0 && diffY > 0) {
+			
+			// go down
+			/*
+			p3 = std::make_pair(agent->getX(), pDesired.second - 2); // 4
+																   // go right
+			p4 = std::make_pair(pDesired.first + 2, agent->getY()); // 3
+																   // go leftdown
+			p5 = std::make_pair(pDesired.first + 2, pDesired.second - 2); // 5
+																	   // go rightdown
+			p6 = std::make_pair(pDesired.first + 2, pDesired.second); // 1
+																	   // go rightup
+			p7 = std::make_pair(pDesired.first, pDesired.second - 2); // 2
+			*/
+			//done
+			
+			p3 = std::make_pair( agent->getX() + 1, agent->getY() + 1); // 4
+			// go right
+			p4 = std::make_pair( agent->getX() - 1, agent->getY() - 1); // 3
+			// go leftdown
+			p5 = std::make_pair( agent->getX() + 1, agent->getY()); // 5
+			// go rightdown
+			p6 = std::make_pair( agent->getX(), agent->getY() - 1); // 2
+			// go rightup
+			p7 = std::make_pair( agent->getX() + 1, agent->getY() - 1);  //1
+		}
+		else if (diffX > 0 && diffY < 0) {
+			// go NORTH
+			// go down
+			//DENNA VA ATT DET BLEV FEL BOTTOM RIGHT
+			/*
+			p3 = std::make_pair(pDesired.first - 2, pDesired.second); // 1
+			// go left
+			p4 = std::make_pair(pDesired.first - 2, agent->getY()); // 3
+			// go leftup
+			p5 = std::make_pair(pDesired.first - 2, pDesired.first + 2); // 5
+			// go leftdown
+			p6 = std::make_pair(agent->getX(), pDesired.second + 2); // 4
+			// go rightdown
+			p7 = std::make_pair(pDesired.first, pDesired.second + 2); // 2
+			
+			*/
+			//done
+			
+
+			p3 = std::make_pair( agent->getX() - 1, agent->getY() - 1);
+			
+			// go left
+			p4 = std::make_pair( agent->getX() + 1, agent->getY() + 1);
+			// go leftup
+			p5 = std::make_pair( agent->getX() - 1, agent->getY());
+			// go leftdown
+			p6 = std::make_pair( agent->getX(), agent->getY() + 1);
+			// go rightdown
+			p7 = std::make_pair( agent->getX() - 1, agent->getY() + 1);
+		}
+		// diffX > 0 && diffY > 0
+		else if (diffX > 0 && diffY > 0) {
+			// go SOUTh
+			// go up
+			/*
+			p3 = std::make_pair(pDesired.first, pDesired.second - 2); // 2
+			// go left
+			p4 = std::make_pair(pDesired.first - 2, agent->getY()); // 3
+			// go leftdown
+			p5 = std::make_pair(pDesired.first - 2, pDesired.second - 2); // 5
+			// go leftup
+			p6 = std::make_pair(pDesired.first - 2, pDesired.second); // 1
+			// go rightup
+			p7 = std::make_pair(agent->getX(), pDesired.second - 2); // 4
+			*/
+			//done
+			
+
+			p3 = std::make_pair( agent->getX() -1, agent->getY() + 1);
+			// go left
+			p4 = std::make_pair( agent->getX() - 1, agent->getY() - 1);
+			// go leftdown
+			p5 = std::make_pair( agent->getX() - 1, agent->getY());
+			// go leftup
+			p6 = std::make_pair( agent->getX(), agent->getY() -1);
+			// go rightup
+			p7 = std::make_pair( agent->getX() - 1, agent->getY() - 1);
+		}
 	}
 	prioritizedAlternatives.push_back(p1);
 	prioritizedAlternatives.push_back(p2);
-
+	prioritizedAlternatives.push_back(p3);
+	prioritizedAlternatives.push_back(p4);
+	prioritizedAlternatives.push_back(p5);
+	prioritizedAlternatives.push_back(p6);
+	prioritizedAlternatives.push_back(p7);
 	// Find the first empty alternative position
 	for (std::vector<pair<int, int> >::iterator it = prioritizedAlternatives.begin(); it != prioritizedAlternatives.end(); ++it) {
 
