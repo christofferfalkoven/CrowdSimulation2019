@@ -204,172 +204,55 @@ void Ped::Model::tick()
 	
 	// OMP 
 	if (implementation == Ped::OMP) {
-
-
-
-		// Set number of threads 
 		omp_set_num_threads(4);
 		size_t size = agents.size();
 		int i = 0;
 
-		//for (int i = 0; i < size; i++) {
-			#pragma omp parallel sections
+		#pragma omp parallel sections
+		{
+			#pragma omp section 
 			{
-				#pragma omp section 
-				{
-				//tick_move_func(reg->region1, i);
-					tick_move_func_reg1();
+				tick_move_func_reg1();
 					
-					for (int n = 0; n < reg->region1ToRemove.size(); n++) {
-						//cout << get<1>(reg->region1ToRemove[n]) << endl;
-						reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n])-n));
-					}
-					reg->region1ToRemove.clear();
-
+				for (int n = 0; n < reg->region1ToRemove.size(); n++) {
+					reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n])-n));
 				}
+				reg->region1ToRemove.clear();
 
-				
-
-
-				#pragma omp section 
-				{
-					//tick_move_func(reg->region2, i);
-					tick_move_func_reg2();
-					for (int n = 0; n < reg->region2ToRemove.size(); n++) {
-						//cout << get<1>(reg->region1ToRemove[n]) << endl;
-						reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
-					}
-					reg->region2ToRemove.clear();
-					//region2ToRemove;
-
-					//check list what i want to delete from region 2.
-				}
-				#pragma omp section 
-				{
-					//tick_move_func(reg->region3, i);
-					tick_move_func_reg3();
-					for (int n = 0; n < reg->region3ToRemove.size(); n++) {
-						//cout << get<1>(reg->region1ToRemove[n]) << endl;
-						reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
-					}
-					reg->region3ToRemove.clear();
-					//region3ToRemove;
-
-				}
-				#pragma omp section 
-				{
-					//tick_move_func(reg->region4, i);
-					tick_move_func_reg4();
-					for (int n = 0; n < reg->region4ToRemove.size(); n++) {
-						//cout << get<1>(reg->region1ToRemove[n]) << endl;
-						reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
-					}
-					reg->region4ToRemove.clear();
-					//region3ToRemove;
-
-				}
 			}
-					/*if (!reg->leftinbox2.empty()) {
-						for (int n = 0; n < reg->leftinbox2.size(); n++) {
-							reg->region2.push_back(reg->leftinbox2[n]);
-						}
-						reg->leftinbox2.clear();
-					}
-					if (!reg->rightinbox2.empty()) {
-						for (int n = 0; n < reg->rightinbox2.size(); n++) {
-							reg->region2.push_back(reg->rightinbox2[n]);
-						}
-						reg->rightinbox2.clear();
-					}
-				}
-				
-				#pragma omp section 
-				{
-					tick_move_func(reg->region3, i);
-					/*if (!reg->leftinbox3.empty()) {
-						for (int n = 0; n < reg->leftinbox3.size(); n++) {
-							reg->region3.push_back(reg->leftinbox3[n]);
-						}
-						reg->leftinbox3.clear();
-					}
-					if (!reg->rightinbox3.empty()) {
-						for (int n = 0; n < reg->rightinbox3.size(); n++) {
-							reg->region3.push_back(reg->rightinbox3[n]);
-						}
-						reg->rightinbox3.clear();
-					}
-				}
-
-				#pragma omp section 
-				{
-					tick_move_func(reg->region4, i);
-
-					/*if (!reg->leftinbox4.empty()) {
-						for (int n = 0; n < reg->leftinbox4.size(); n++) {
-							reg->region4.push_back(reg->leftinbox4[n]);
-						}
-						reg->leftinbox4.clear();
-					}*/
-				
-				/*
-				#pragma omp section 
-				{
-					if (!reg->leftinbox2.empty()) {
-						//reg->region2.insert(reg->region2.end(), reg->leftinbox2.begin(), reg->leftinbox2.end());
-						//reg->reg2size++;
-						for (int i = 0; i < reg->leftinbox2.size(); i++) {
-							reg->region2.push_back(reg->leftinbox2[i]);
-							//reg->reg1size++;
-						}
-						reg->leftinbox2.clear();
-					}
-					if (!reg->rightinbox2.empty()) {
-						//reg->region2.insert(reg->region2.end(), reg->rightinbox2.begin(), reg->rightinbox2.end());
-						//reg->reg2size++;
-						for (int i = 0; i < reg->rightinbox2.size(); i++) {
-							reg->region2.push_back(reg->rightinbox2[i]);
-							//reg->reg1size++;
-						}
-						reg->rightinbox2.clear();
-					}
-				}
-				
-				#pragma omp section 
-				{
-					if (!reg->leftinbox3.empty()) {
-						//reg->region3.insert(reg->region3.end(), reg->leftinbox3.begin(), reg->leftinbox3.end());
-						//reg->reg3size++;
-						for (int i = 0; i < reg->leftinbox3.size(); i++) {
-							reg->region3.push_back(reg->leftinbox3[i]);
-							//reg->reg1size++;
-						}
-						reg->leftinbox3.clear();
-					}
-					if (!reg->rightinbox3.empty()) {
-						//reg->region3.insert(reg->region3.end(), reg->rightinbox3.begin(), reg->rightinbox3.end());
-						//reg->reg3size++;
-						for (int i = 0; i < reg->rightinbox3.size(); i++) {
-							reg->region3.push_back(reg->rightinbox3[i]);
-							//reg->reg1size++;
-						}
-						reg->rightinbox3.clear();
-					}
-				}
 
 				
-				#pragma omp section 
-				{
-					if (!reg->leftinbox4.empty()) {
-						//reg->region4.insert(reg->region4.end(), reg->leftinbox4.begin(), reg->leftinbox4.end());
-						//reg->reg4size++;
-						for (int i = 0; i < reg->leftinbox4.size(); i++) {
-							reg->region4.push_back(reg->leftinbox4[i]);
-							//reg->reg1size++;
-						}
-						reg->leftinbox4.clear();
-					}
+
+
+			#pragma omp section 
+			{
+				tick_move_func_reg2();
+				for (int n = 0; n < reg->region2ToRemove.size(); n++) {
+					reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
 				}
-				*/
+				reg->region2ToRemove.clear();
+			}
+
+			#pragma omp section 
+			{
+				//tick_move_func(reg->region3, i);
+				tick_move_func_reg3();
+				for (int n = 0; n < reg->region3ToRemove.size(); n++) {
+					reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
+				}
+				reg->region3ToRemove.clear();
+			}
+
+			#pragma omp section 
+			{
+				tick_move_func_reg4();
+				for (int n = 0; n < reg->region4ToRemove.size(); n++) {
+					//cout << get<1>(reg->region1ToRemove[n]) << endl;
+					reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
+				}
+				reg->region4ToRemove.clear();
+			}
+		}
 	}
 
 
@@ -522,40 +405,20 @@ void Ped::Model::tick_vec()
 void Ped::Model::tick_move_func_reg1() {
 
 	for (int p = 0; p < reg->region1.size(); p++) {
+
 		Tagent* agent = reg->region1[p];
-		//cout << agent << endl;
 		agent->computeNextDesiredPosition();
 		int x = agent->getX();
 		int dstX = agent->getDesiredX();
-		/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		cout << "TOTAL IS......: " << tot << endl;
-		*/
+
+		// going from region 1 to 2
 		if (x == 40 && dstX == 41) {
 			reg->region2.push_back(agent);
 			//reg->region1.erase(reg->region1.begin() + p);
-			
 			reg->region1ToRemove.push_back(std::make_tuple(agent, p));
 			
 
-		} /*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		if (tot != 452) {
-			//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
-			cout << "crashed in reg1!!" << endl;
-			cout << "TOTAL IS......: " << tot << endl;
-			cout << "x: " << x << " || destX: " << dstX << endl;
-
-			
-		}*/
+		} 
 		move(agent);
 	}
 
@@ -564,95 +427,47 @@ void Ped::Model::tick_move_func_reg1() {
 void Ped::Model::tick_move_func_reg2() {
 
 	for (int p = 0; p < reg->region2.size(); p++) {
+
 		Tagent* agent = reg->region2[p];
-		//cout << agent << endl;
 		agent->computeNextDesiredPosition();
 		int x = agent->getX();
 		int dstX = agent->getDesiredX();
-		/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		cout << "TOTAL IS......: " << tot << endl;
-		*/
+
+		// going from region 2 to 1
 		if (x == 41 && dstX == 40) {
-			//reg->rightinbox1.push_back(agent);
-			//cout << "inne" << endl;
 			reg->region1.push_back(agent);
-
-			//reg->region2.erase(reg->region2.begin() + p);
 			reg->region2ToRemove.push_back(std::make_tuple(agent, p));
-			//cout << "x == 40 && dstX == 39" << endl;
-
 
 		}
 		// going from region2 to region3
 		else if (x == 80 && dstX == 81) {
-			//reg->leftinbox3.push_back(agent); 
-			reg->region3.push_back(agent);
-			//reg->region2.erase(reg->region2.begin() + p);
-			reg->region2ToRemove.push_back(std::make_tuple(agent, p));
-		}/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		if (tot != 452) {
-			//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
-			cout << "crashed in reg2!!" << endl;
-			cout << "TOTAL IS......: " << tot << endl;
-			cout << "x: " << x << " || destX: " << dstX << endl;
 
-		}*/
+			reg->region3.push_back(agent);
+			reg->region2ToRemove.push_back(std::make_tuple(agent, p));
+		}
 		move(agent);
 	}
 }
 
 void Ped::Model::tick_move_func_reg3() {
 	for (int p = 0; p < reg->region3.size(); p++) {
+
 		Tagent* agent = reg->region3[p];
-		//cout << agent << endl;
 		agent->computeNextDesiredPosition();
 		int x = agent->getX();
 		int dstX = agent->getDesiredX();
-		/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		cout << "TOTAL IS......: " << tot << endl;
-		*/
-		if (x == 81 && dstX == 80) {
-			//reg->rightinbox2.push_back(agent);
-			reg->region2.push_back(agent);
 
-			//reg->region3.erase(reg->region3.begin() + p);
+		// going from region 3 to 2
+		if (x == 81 && dstX == 80) {
+			reg->region2.push_back(agent);
 			reg->region3ToRemove.push_back(std::make_tuple(agent, p));
 
 		}
 		// going from region3 to region4
 		else if (x == 120 && dstX == 121) {
-			//reg->leftinbox4.push_back(agent);
 			reg->region4.push_back(agent);
-			//reg->region3.erase(reg->region3.begin() + p);
 			reg->region3ToRemove.push_back(std::make_tuple(agent, p));
-
-		}/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		if (tot != 452) {
-			//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
-			cout << "crashed in reg3!!" << endl;
-			cout << "TOTAL IS......: " << tot << endl;
-			cout << "x: " << x << " || destX: " << dstX << endl;
-		}*/
+		}
 		move(agent);
 	}
 }
@@ -660,134 +475,26 @@ void Ped::Model::tick_move_func_reg3() {
 void Ped::Model::tick_move_func_reg4() {
 
 	for (int p = 0; p < reg->region4.size(); p++) {
-		//cout << "region4 size: " << reg->region4.size() << "::: P-value: " << p<< endl;
+
 		Tagent* agent = reg->region4[p];
-		//cout << agent << endl;
 		agent->computeNextDesiredPosition();
 		int x = agent->getX();
 		int dstX = agent->getDesiredX();
-		//cout << "The totsize for reg4 is : " << reg->region4.size() << endl;
-		/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		cout << "TOTAL IS......: " << tot << endl;
-		*/
+		// going from region 4 to 3
 		if (x == 121 && dstX == 120) {
-			//reg->rightinbox3.push_back(agent);
 			reg->region3.push_back(agent);
 			reg->region4ToRemove.push_back(std::make_tuple(agent, p));
-			//reg->region4.erase(reg->region4.begin() + p);
-			
-
-
 		}
-		
-		/*
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		if (tot != 452) {
-			//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
-			cout << "crashed in reg4!!" << endl;
-			cout << "TOTAL IS......: " << tot << endl;
-			cout << "x: " << x << " || destX: " << dstX << endl;
-
-		}*/
 		move(agent);
 	}
-	/*
-	for (Tagent* age : reg->region4) {
-		move(age);
-	}
-	for (Tagent* agen : reg->region4) {
-		cout << "Agent getX: " << agen->getX() << "Agent getY: " << agen->getY() << "::: Desired: " << agen->getDesiredX() << " ::: The totsize for reg4 is : " << reg->region4.size() << " :::: " << agen << endl;
-	}
-	exit(0);
-	*/
+
 }
 
 // This function will be using only the move function logic, we will choose to apply the lab3 using OPENMP
 
 void Ped::Model::tick_move_func(std::vector<Tagent*> spec_region, int i) {
 }
-	/*
-	if (implementation == OMP) {
-		int one = reg->region1.size();
-		int two = reg->region2.size();
-		int three = reg->region3.size();
-		int four = reg->region4.size();
-		int tot = one + two + three + four;
-		//cout << "size reg1: " << one << "::::::::size reg2: " << two << "::::::::size reg3: " << three << "::::::::size reg4: " << four << two << "::::::::Total: " << tot << endl;
-		cout << "TOTAL IS......: " << tot << endl; 
-
-		for (int p = 0; p < spec_region.size(); p++) {
-			Tagent* agent = spec_region[p];
-			//cout << agent << endl;
-			agent->computeNextDesiredPosition();
-			int x = agent->getX();
-			int dstX = agent->getDesiredX();
-
-			if (x == 39 && dstX == 40) {
-				//reg->leftinbox2.push_back(agent);
-				//cout << "first line" << endl;
-				//cout << p << endl;
-				//cout << "The len of region 1 is: " << spec_region.size() << endl;
-				spec_region.erase(spec_region.begin() + p);
-				//cout << "second line" << endl;
-
-				reg->region2.push_back(agent);
-				//cout << "third line" << endl;
-
-				//cout << "x == 39 && dstX == 40" << endl;
-			}
-			else if (x == 40 && dstX == 39) {
-				//reg->rightinbox1.push_back(agent);
-				//cout << "inne" << endl;
-				spec_region.erase(spec_region.begin() + p);
-				reg->region1.push_back(agent);
-				//cout << "x == 40 && dstX == 39" << endl;
-
-				
-			}
-			// going from region2 to region3
-			else if (x == 79 && dstX == 80) {
-				//reg->leftinbox3.push_back(agent); 
-				spec_region.erase(spec_region.begin() + p);
-				reg->region3.push_back(agent);
-
-			}
-			// going from region3 to region2
-			else if (x == 80 && dstX == 79) {
-				//reg->rightinbox2.push_back(agent);
-				spec_region.erase(spec_region.begin() + p);
-				reg->region2.push_back(agent);
-				
-			}
-			// going from region3 to region4
-			else if (x == 119 && dstX == 120) {
-				//reg->leftinbox4.push_back(agent);
-				spec_region.erase(spec_region.begin() + p);
-				reg->region4.push_back(agent);
-				
-			}
-			// going from region4 to region 3
-			else if (x == 120 && dstX == 119) {
-				//reg->rightinbox3.push_back(agent);
-				spec_region.erase(spec_region.begin() + p);
-				reg->region3.push_back(agent);
-				
-
-			}
-			move(agent);
-		}
-	}
-}
-*/
+	
 
 // Potential source of parallellism
 void Ped::Model::tick_one(Ped::Tagent* agent)
@@ -907,12 +614,12 @@ void Ped::Model::move(Ped::Tagent *agent)
 
 			p3 = std::make_pair(agent->getX() - 1, agent->getY());
 			// go right
-			p4 = std::make_pair(agent->getX() + 1, agent->getY());
+			p4 = std::make_pair(agent->getX() - 1, agent->getY() + 1); 
 			// diagonalt höger
-			p5 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
+			p5 = std::make_pair(agent->getX(), agent->getY() + 1);
 			// diagonalt vänster
-			p6 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
-			p7 = std::make_pair(agent->getX(), agent->getY() + 1);
+			p6 = std::make_pair(agent->getX() + 1, agent->getY());
+			p7 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -927,11 +634,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 			//
 			//done
 
-			p3 = std::make_pair(agent->getX() - 1, agent->getY());
+			p3 = std::make_pair(agent->getX() + 1, agent->getY());
 			// go right
-			p4 = std::make_pair(agent->getX() + 1, agent->getY());
+			p4 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
 			// go left
-			p5 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
+			p5 = std::make_pair(agent->getX() - 1, agent->getY());
 			// diagonalt höger
 			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
 			// diagonalt upp
@@ -958,13 +665,13 @@ void Ped::Model::move(Ped::Tagent *agent)
 
 			p3 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
 			// go right
-			p4 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
+			p4 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
 			// go leftup
 			p5 = std::make_pair(agent->getX() + 1, agent->getY());
 			// go rightup
 			p6 = std::make_pair(agent->getX(), agent->getY() + 1);
 			// go rightdown
-			p7 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
+			p7 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -976,15 +683,15 @@ void Ped::Model::move(Ped::Tagent *agent)
 
 
 
-			p3 = std::make_pair(agent->getX() + 1, agent->getY() + 1); // 4
+			p3 = std::make_pair(agent->getX() + 1, agent->getY() + 1); 
 			// go right
-			p4 = std::make_pair(agent->getX() - 1, agent->getY() - 1); // 3
+			p4 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
 			// go leftdown
-			p5 = std::make_pair(agent->getX() + 1, agent->getY()); // 5
+			p5 = std::make_pair(agent->getX() + 1, agent->getY()); 
 			// go rightdown
-			p6 = std::make_pair(agent->getX(), agent->getY() - 1); // 2
+			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
 			// go rightup
-			p7 = std::make_pair(agent->getX() + 1, agent->getY() - 1);  //1
+			p7 = std::make_pair(agent->getX(), agent->getY() - 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -999,13 +706,13 @@ void Ped::Model::move(Ped::Tagent *agent)
 			p3 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
 
 			// go left
-			p4 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
+			p4 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
 			// go leftup
 			p5 = std::make_pair(agent->getX() - 1, agent->getY());
 			// go leftdown
-			p6 = std::make_pair(agent->getX(), agent->getY() + 1);
+			p6 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
 			// go rightdown
-			p7 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
+			p7 = std::make_pair(agent->getX(), agent->getY() + 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -1022,9 +729,9 @@ void Ped::Model::move(Ped::Tagent *agent)
 			// go leftdown
 			p5 = std::make_pair(agent->getX() - 1, agent->getY());
 			// go leftup
-			p6 = std::make_pair(agent->getX(), agent->getY() - 1);
+			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
 			// go rightup
-			p7 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
+			p7 = std::make_pair(agent->getX(), agent->getY() - 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
