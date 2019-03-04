@@ -57,7 +57,7 @@ namespace Ped{
 		void placeAgent(const Ped::Tagent *ag);
 
 		void Ped::Model::tick_vec();
-		//Ped::cool_agent* agent
+		//Ped::cool_agent* agent 
 		// Cleans up the tree and restructures it. Worth calling every now and then.
 		void cleanup();
 		~Model();

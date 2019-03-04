@@ -36,16 +36,16 @@ void Ped::region::init(std::vector<Tagent*> agents) {
 		agents[i]->desiredPositionX = 40;
 		*/
 
-		if (x < 40) {
+		if (0 < x <= 40) {
 			region1.push_back(agents[i]);
 		}
-		else if (40 < x && x < 80) {
+		else if (40 < x <= 80) {
 			region2.push_back(agents[i]);
 		}
-		else if (80 < x && x < 120) {
+		else if (80 < x <= 120) {
 			region3.push_back(agents[i]);
 		}
-		else {
+		else if (120 <  x <= 160) {
 			region4.push_back(agents[i]);
 		}
 

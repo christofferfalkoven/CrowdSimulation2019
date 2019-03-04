@@ -31,7 +31,7 @@
     <PrimaryOutput>Demo</PrimaryOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='timing-release|x64'" Label="Configuration">
-    <PlatformToolSet>v141</PlatformToolSet>
+    <PlatformToolSet>v140</PlatformToolSet>
     <OutputDirectory>release\Demo\</OutputDirectory>
     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
     <CharacterSet>NotSet</CharacterSet>

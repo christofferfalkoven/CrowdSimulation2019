@@ -32,7 +32,12 @@ namespace Ped {
 		std::vector<Tagent*> region3;
 		std::vector<Tagent*> region4;
 		
-		std::vector<Tagent*> rightinbox1; 
+		std::vector<Tagent*> region1ToRemove; 
+		std::vector<Tagent*> region2ToRemove;
+		std::vector<Tagent*> region3ToRemove;
+		std::vector<Tagent*> region4ToRemove;
+
+		/*
 		std::vector<Tagent*> leftinbox2;
 		std::vector<Tagent*> rightinbox2;
 
@@ -47,6 +52,7 @@ namespace Ped {
 		std::vector<Tagent*> leftoutbox3;
 		std::vector<Tagent*> rightoutbox3;
 		std::vector<Tagent*> leftoutbox4;
+		*/
 		//int *reg1;
 		//int *reg2;
 		//int *reg3;
