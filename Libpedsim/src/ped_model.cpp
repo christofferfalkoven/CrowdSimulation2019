@@ -25,6 +25,7 @@
 #include <smmintrin.h>
 #include <string>
 #include "region.h"
+#include <tuple>
 // Memory leak check with msvc++
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -218,33 +219,54 @@ void Ped::Model::tick()
 				{
 				//tick_move_func(reg->region1, i);
 					tick_move_func_reg1();
-				/*if (!reg->rightinbox1.empty()) {
-
-					for (int n = 0; n < reg->rightinbox1.size(); n++) {
-						reg->region1.push_back(reg->rightinbox1[n]);
+					
+					for (int n = 0; n < reg->region1ToRemove.size(); n++) {
+						//cout << get<1>(reg->region1ToRemove[n]) << endl;
+						reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n])-n));
 					}
-					reg->rightinbox1.clear();
-
-				}*/
+					reg->region1ToRemove.clear();
 
 				}
+
+				
 
 
 				#pragma omp section 
 				{
 					//tick_move_func(reg->region2, i);
 					tick_move_func_reg2();
+					for (int n = 0; n < reg->region2ToRemove.size(); n++) {
+						//cout << get<1>(reg->region1ToRemove[n]) << endl;
+						reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
+					}
+					reg->region2ToRemove.clear();
+					//region2ToRemove;
+
 					//check list what i want to delete from region 2.
 				}
 				#pragma omp section 
 				{
 					//tick_move_func(reg->region3, i);
 					tick_move_func_reg3();
+					for (int n = 0; n < reg->region3ToRemove.size(); n++) {
+						//cout << get<1>(reg->region1ToRemove[n]) << endl;
+						reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
+					}
+					reg->region3ToRemove.clear();
+					//region3ToRemove;
+
 				}
 				#pragma omp section 
 				{
 					//tick_move_func(reg->region4, i);
 					tick_move_func_reg4();
+					for (int n = 0; n < reg->region4ToRemove.size(); n++) {
+						//cout << get<1>(reg->region1ToRemove[n]) << endl;
+						reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
+					}
+					reg->region4ToRemove.clear();
+					//region3ToRemove;
+
 				}
 			}
 					/*if (!reg->leftinbox2.empty()) {
@@ -515,8 +537,9 @@ void Ped::Model::tick_move_func_reg1() {
 		*/
 		if (x == 40 && dstX == 41) {
 			reg->region2.push_back(agent);
-			reg->region1.erase(reg->region1.begin() + p);
-
+			//reg->region1.erase(reg->region1.begin() + p);
+			
+			reg->region1ToRemove.push_back(std::make_tuple(agent, p));
 			
 
 		} /*
@@ -559,7 +582,8 @@ void Ped::Model::tick_move_func_reg2() {
 			//cout << "inne" << endl;
 			reg->region1.push_back(agent);
 
-			reg->region2.erase(reg->region2.begin() + p);
+			//reg->region2.erase(reg->region2.begin() + p);
+			reg->region2ToRemove.push_back(std::make_tuple(agent, p));
 			//cout << "x == 40 && dstX == 39" << endl;
 
 
@@ -568,8 +592,8 @@ void Ped::Model::tick_move_func_reg2() {
 		else if (x == 80 && dstX == 81) {
 			//reg->leftinbox3.push_back(agent); 
 			reg->region3.push_back(agent);
-			reg->region2.erase(reg->region2.begin() + p);
-
+			//reg->region2.erase(reg->region2.begin() + p);
+			reg->region2ToRemove.push_back(std::make_tuple(agent, p));
 		}/*
 		int one = reg->region1.size();
 		int two = reg->region2.size();
@@ -606,14 +630,16 @@ void Ped::Model::tick_move_func_reg3() {
 			//reg->rightinbox2.push_back(agent);
 			reg->region2.push_back(agent);
 
-			reg->region3.erase(reg->region3.begin() + p);
+			//reg->region3.erase(reg->region3.begin() + p);
+			reg->region3ToRemove.push_back(std::make_tuple(agent, p));
 
 		}
 		// going from region3 to region4
 		else if (x == 120 && dstX == 121) {
 			//reg->leftinbox4.push_back(agent);
 			reg->region4.push_back(agent);
-			reg->region3.erase(reg->region3.begin() + p);
+			//reg->region3.erase(reg->region3.begin() + p);
+			reg->region3ToRemove.push_back(std::make_tuple(agent, p));
 
 		}/*
 		int one = reg->region1.size();
@@ -652,7 +678,8 @@ void Ped::Model::tick_move_func_reg4() {
 		if (x == 121 && dstX == 120) {
 			//reg->rightinbox3.push_back(agent);
 			reg->region3.push_back(agent);
-			reg->region4.erase(reg->region4.begin() + p);
+			reg->region4ToRemove.push_back(std::make_tuple(agent, p));
+			//reg->region4.erase(reg->region4.begin() + p);
 			
 
 
@@ -823,6 +850,8 @@ void Ped::Model::move(Ped::Tagent *agent)
 	std::pair<int, int> p1, p2, p3, p4, p5, p6, p7;
 	//om den ej vill gå diagonalt
 	//cout << reg->region1.size << endl;
+	int currX = agent->getX();
+
 	if (diffX == 0 || diffY == 0)
 	{
 		// Agent wants to walk straight to North, South, West or East
@@ -835,7 +864,7 @@ void Ped::Model::move(Ped::Tagent *agent)
 		//exit(0);
 		// desX-getX()
 		//  151-150 = 
-		if (diffX < 0 && diffY == 0) {
+		if (diffX < 0 ) {
 			p3 = std::make_pair(agent->getX(), agent->getY() + 1);
 			// go up in Y axis
 			p4 = std::make_pair(agent->getX(), agent->getY() - 1);
@@ -852,7 +881,7 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p6);
 			prioritizedAlternatives.push_back(p7);
 		}
-		else if (diffX > 0 && diffY == 0) {
+		else if (diffX > 0 ) {
 
 			// go up in Y axis
 			//done
@@ -871,7 +900,7 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p6);
 			prioritizedAlternatives.push_back(p7);
 		}
-		else if (diffY < 0 && diffX == 0) {
+		else if (diffY < 0 ) {
 
 			// go left
 			//done
@@ -880,7 +909,7 @@ void Ped::Model::move(Ped::Tagent *agent)
 			// go right
 			p4 = std::make_pair(agent->getX() + 1, agent->getY());
 			// diagonalt höger
-			p5 = std::make_pair( agent->getX() + 1, agent->getY() + 1);
+			p5 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
 			// diagonalt vänster
 			p6 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
 			p7 = std::make_pair(agent->getX(), agent->getY() + 1);
@@ -892,7 +921,7 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p7);
 
 		}
-		else if (diffY > 0 && diffX == 0) {
+		else if (diffY > 0 ) {
 
 			//cout << "getX= " << agent->getX() << ":::::::::" << "pDesired.first= " << pDesired.first << endl;
 			//
@@ -900,7 +929,7 @@ void Ped::Model::move(Ped::Tagent *agent)
 
 			p3 = std::make_pair(agent->getX() - 1, agent->getY());
 			// go right
-			p4 = std::make_pair( agent->getX() + 1, agent->getY());
+			p4 = std::make_pair(agent->getX() + 1, agent->getY());
 			// go left
 			p5 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
 			// diagonalt höger

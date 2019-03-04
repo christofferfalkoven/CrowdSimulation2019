@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include <tuple>
 
 using namespace std;
 
@@ -27,15 +28,15 @@ namespace Ped {
 		int reg3size = 0;
 		int reg4size = 0;
 		
-		std::vector<Tagent*> region1; 
+		std::vector<Tagent*> region1;
 		std::vector<Tagent*> region2;
 		std::vector<Tagent*> region3;
 		std::vector<Tagent*> region4;
 		
-		std::vector<Tagent*> region1ToRemove; 
-		std::vector<Tagent*> region2ToRemove;
-		std::vector<Tagent*> region3ToRemove;
-		std::vector<Tagent*> region4ToRemove;
+		std::vector<tuple<Tagent*, int>> region1ToRemove;
+		std::vector<tuple<Tagent*, int>> region2ToRemove;
+		std::vector<tuple<Tagent*, int>> region3ToRemove;
+		std::vector<tuple<Tagent*, int>> region4ToRemove;
 
 		/*
 		std::vector<Tagent*> leftinbox2;
