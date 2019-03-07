@@ -50,6 +50,11 @@ namespace Ped{
 		void Ped::Model::tick_move_func_reg3();
 		void Ped::Model::tick_move_func_reg4();
 
+
+		// Tick func for heatmap
+		void Ped::Model::tick_heat();
+
+
 		// Returns the agents of this scenario
 		const std::vector<Tagent*> getAgents() const { return agents; };
 
@@ -113,8 +118,16 @@ namespace Ped{
 
 		int ** blurred_heatmap;
 
+		int *heatmap_cuda;
+		int *scaled_cuda;
+		int *blurred_cuda;
+		int *x_arr;
+		int *y_arr;
+
 		void setupHeatmapSeq();
 		void updateHeatmapSeq();
+		void setupHeatmapCuda();
+		void updateHeatmapCuda();
 	};
 }
 #endif

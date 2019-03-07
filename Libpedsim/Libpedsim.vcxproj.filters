@@ -12,6 +12,9 @@
     <CudaCompile Include="src\cuda_testkernel.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="src\cuda_seq.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\heatmap_seq.cpp">

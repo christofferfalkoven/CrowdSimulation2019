@@ -6,6 +6,11 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cuda.h>
+//#include "cude_runtime.h"
+//#include <cuda_runtime_api>
+#include <cuda_runtime.h>
+#include "cuda_runtime_api.h"
 using namespace std;
 
 // Memory leak check with msvc++
@@ -37,11 +42,17 @@ void Ped::Model::setupHeatmapSeq()
 		scaled_heatmap[i] = shm + SCALED_SIZE*i;
 		blurred_heatmap[i] = bhm + SCALED_SIZE*i;
 	}
+
+
 }
 
 // Updates the heatmap according to the agent positions
+// TODO: Parallilize this using CUDA
+
+__global__ 
 void Ped::Model::updateHeatmapSeq()
 {
+
 	for (int x = 0; x < SIZE; x++)
 	{
 		for (int y = 0; y < SIZE; y++)

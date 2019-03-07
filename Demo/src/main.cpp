@@ -83,7 +83,7 @@ int main(int argc, char*argv[]) {
 		// CHANGE THE PED HERE TO TRY DIFFERENT IMPLMENTATIONS
 		
 
-		model.setup(parser.getAgents(), parser.getWaypoints(), Ped::OMP);
+		model.setup(parser.getAgents(), parser.getWaypoints(), Ped::SEQ);
 
 		// GUI related set ups
 		QApplication app(argc, argv);

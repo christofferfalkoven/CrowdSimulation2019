@@ -73,128 +73,9 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario, std::vector<T
 		//cout << reg << endl;
 	}
 	// Set up heatmap (relevant for Assignment 4)
-	setupHeatmapSeq();
+	setupHeatmapCuda();
 }
 
-
-
-/*
-#pragma omp section
-{
-if (!reg->leftinbox2.empty()) {
-/*for (int i = 0; i < reg->leftinbox2.size(); i++) {
-//->region1.push_back(reg->rightinbox1[i]);
-//cout << "yo" << endl;
-reg->region2.push_back(reg->leftinbox2[i]);
-}
-reg->region2.insert(reg->region2.end(), reg->leftinbox2.begin(), reg->leftinbox2.end());
-}
-
-if (!reg->rightinbox2.empty()) {
-/*for (int i = 0; i < reg->rightinbox2.size(); i++) {
-//->region1.push_back(reg->rightinbox1[i]);
-//cout << "yo" << endl;
-reg->region2.push_back(reg->rightinbox2[i]);
-}
-
-reg->region2.insert(reg->region2.end(), reg->rightinbox2.begin(), reg->rightinbox2.end());
-}
-
-if (!reg->leftoutbox2.empty()) {
-for (int i = 0; i < reg->leftoutbox2.size(); i++) {
-//std::vector<int>::iterator position = find(reg->region1.begin(), reg->region1.end(), reg->rightoutbox1[i]);
-reg->region2.erase(remove(reg->region2.begin(), reg->region2.end(), reg->leftoutbox2[i]), reg->region2.end());
-}
-}
-
-if (!reg->rightoutbox2.empty()) {
-for (int i = 0; i < reg->rightoutbox2.size(); i++) {
-//std::vector<int>::iterator position = find(reg->region1.begin(), reg->region1.end(), reg->rightoutbox1[i]);
-reg->region2.erase(remove(reg->region2.begin(), reg->region2.end(), reg->rightoutbox2[i]), reg->region2.end());
-}
-}
-
-
-}
-
-
-#pragma omp section
-{
-if (!reg->leftinbox3.empty()) {
-/*for (int i = 0; i < reg->leftinbox3.size(); i++) {
-//->region1.push_back(reg->rightinbox1[i]);
-//cout << "yo" << endl;
-reg->region3.push_back(reg->leftinbox3[i]);
-}
-reg->region3.insert(reg->region3.end(), reg->leftinbox3.begin(), reg->leftinbox3.end());
-}
-
-if (!reg->rightinbox3.empty()) {
-/*for (int i = 0; i < reg->rightinbox3.size(); i++) {
-//->region1.push_back(reg->rightinbox1[i]);
-//cout << "yo" << endl;
-reg->region3.push_back(reg->rightinbox3[i]);
-}
-reg->region3.insert(reg->region3.end(), reg->rightinbox3.begin(), reg->rightinbox3.end());
-}
-
-if (!reg->leftoutbox3.empty()) {
-for (int i = 0; i < reg->leftoutbox3.size(); i++) {
-//std::vector<int>::iterator position = find(reg->region1.begin(), reg->region1.end(), reg->rightoutbox1[i]);
-reg->region3.erase(remove(reg->region3.begin(), reg->region3.end(), reg->leftoutbox3[i]), reg->region3.end());
-}
-}
-
-if (!reg->rightoutbox3.empty()) {
-for (int i = 0; i < reg->rightoutbox3.size(); i++) {
-//std::vector<int>::iterator position = find(reg->region1.begin(), reg->region1.end(), reg->rightoutbox1[i]);
-reg->region3.erase(remove(reg->region3.begin(), reg->region3.end(), reg->rightoutbox3[i]), reg->region3.end());
-}
-}
-
-
-}
-
-#pragma omp section
-{
-if (!reg->leftinbox4.empty()) {
-/*for (int i = 0; i < reg->leftinbox4.size(); i++) {
-//->region1.push_back(reg->rightinbox1[i]);
-//cout << "yo" << endl;
-reg->region4.push_back(reg->leftinbox4[i]);
-}
-reg->region4.insert(reg->region4.end(), reg->leftinbox4.begin(), reg->leftinbox4.end());
-}
-
-if (!reg->leftoutbox4.empty()) {
-for (int i = 0; i < reg->leftoutbox4.size(); i++) {
-//std::vector<int>::iterator position = find(reg->region1.begin(), reg->region1.end(), reg->rightoutbox1[i]);
-reg->region4.erase(remove(reg->region4.begin(), reg->region4.end(), reg->leftoutbox4[i]), reg->region4.end());
-}
-}
-}
-}*/
-
-
-//tick_move_func(agents[i]);
-
-
-// OR 
-// Different implementation using only omp parallel command
-/*
-#pragma omp parallel
-{
-omp_set_num_threads(4);
-int num_thread = omp_get_num_threads();
-size_t size = agents.size();
-int thread_id = omp_get_thread_num();
-
-// Starts at diff places, but indexes i based on num of threads
-for (int i = thread_id; i < size; i += num_thread) {
-tick_one(agents[i]);
-}
-}
-*/
 
 
 
@@ -208,55 +89,57 @@ void Ped::Model::tick()
 		size_t size = agents.size();
 		int i = 0;
 
-		#pragma omp parallel sections
+		#pragma omp parallel sections 
 		{
 			#pragma omp section 
 			{
 				tick_move_func_reg1();
-					
-				for (int n = 0; n < reg->region1ToRemove.size(); n++) {
-					reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n])-n));
+				if (!reg->region1ToRemove.empty()) {
+					for (int n = 0; n < reg->region1ToRemove.size(); n++) {
+						reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n]) - n));
+					}
+					reg->region1ToRemove.clear();
 				}
-				reg->region1ToRemove.clear();
+
 
 			}
-
-				
-
 
 			#pragma omp section 
 			{
 				tick_move_func_reg2();
-				for (int n = 0; n < reg->region2ToRemove.size(); n++) {
-					reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
+				if (!reg->region2ToRemove.empty()) {
+					for (int n = 0; n < reg->region2ToRemove.size(); n++) {
+						reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
+					}
+					reg->region2ToRemove.clear();
 				}
-				reg->region2ToRemove.clear();
 			}
 
 			#pragma omp section 
 			{
-				//tick_move_func(reg->region3, i);
 				tick_move_func_reg3();
-				for (int n = 0; n < reg->region3ToRemove.size(); n++) {
-					reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
+				if (!reg->region3ToRemove.empty()) {
+					
+					for (int n = 0; n < reg->region3ToRemove.size(); n++) {
+						reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
+					}
+					reg->region3ToRemove.clear();
 				}
-				reg->region3ToRemove.clear();
 			}
 
 			#pragma omp section 
 			{
 				tick_move_func_reg4();
-				for (int n = 0; n < reg->region4ToRemove.size(); n++) {
-					//cout << get<1>(reg->region1ToRemove[n]) << endl;
-					reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
+				if (!reg->region4ToRemove.empty()) {
+					for (int n = 0; n < reg->region4ToRemove.size(); n++) {
+						//cout << get<1>(reg->region1ToRemove[n]) << endl;
+						reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
+					}
+					reg->region4ToRemove.clear();
 				}
-				reg->region4ToRemove.clear();
 			}
 		}
 	}
-
-
-
 
 	// PTHREAD 
 	else if (implementation == Ped::PTHREAD) {
@@ -278,10 +161,10 @@ void Ped::Model::tick()
 	
 	// SEQ
 	else if (implementation == Ped::SEQ) {
-		for (Ped::Tagent* agent : agents) {
-			
+		tick_heat(); 
+		/*for (Ped::Tagent* agent : agents) {
 			tick_one(agent);
-		}
+		}*/
 		
 	}
 
@@ -295,6 +178,20 @@ void Ped::Model::tick()
 	}
 }
 
+
+
+void Ped::Model::tick_heat()
+{	
+
+	for (Ped::Tagent* agent : agents) {
+
+		agent->computeNextDesiredPosition();
+
+		move(agent);
+	}
+	
+	updateHeatmapCuda();
+}
 
 
 void Ped::Model::tick_many(int id, int thread_size)
@@ -403,7 +300,7 @@ void Ped::Model::tick_vec()
 }
 
 void Ped::Model::tick_move_func_reg1() {
-
+	#pragma omp parallel for 
 	for (int p = 0; p < reg->region1.size(); p++) {
 
 		Tagent* agent = reg->region1[p];
@@ -425,7 +322,7 @@ void Ped::Model::tick_move_func_reg1() {
 	//exit(0);
 }
 void Ped::Model::tick_move_func_reg2() {
-
+	#pragma omp parallel for 
 	for (int p = 0; p < reg->region2.size(); p++) {
 
 		Tagent* agent = reg->region2[p];
@@ -441,7 +338,6 @@ void Ped::Model::tick_move_func_reg2() {
 		}
 		// going from region2 to region3
 		else if (x == 80 && dstX == 81) {
-
 			reg->region3.push_back(agent);
 			reg->region2ToRemove.push_back(std::make_tuple(agent, p));
 		}
@@ -450,6 +346,7 @@ void Ped::Model::tick_move_func_reg2() {
 }
 
 void Ped::Model::tick_move_func_reg3() {
+	#pragma omp parallel for 
 	for (int p = 0; p < reg->region3.size(); p++) {
 
 		Tagent* agent = reg->region3[p];
@@ -473,7 +370,7 @@ void Ped::Model::tick_move_func_reg3() {
 }
  
 void Ped::Model::tick_move_func_reg4() {
-
+	#pragma omp parallel for 
 	for (int p = 0; p < reg->region4.size(); p++) {
 
 		Tagent* agent = reg->region4[p];
@@ -510,18 +407,6 @@ void Ped::Model::tick_one(Ped::Tagent* agent)
 	// set the agent x-value to the desired x-value
 	agent->setX(x);
 
-	//int x = agent->getDesiredX(); 
-	//agent->setPointerX(x)
-	//agent->setX(&x);
-	/*
-		x[i] = agents[i]->getX();
-		y[i] = agents[i]->getY();
-		agents[i]->setPointerX(&x[i]);
-		agents[i]->setPointerY(&y[i]);
-	*/
-	
-
-	
 	// set the agent y-value to the desired y-value
 	agent->setY(y);
 	
@@ -557,7 +442,8 @@ void Ped::Model::move(Ped::Tagent *agent)
 	std::pair<int, int> p1, p2, p3, p4, p5, p6, p7;
 	//om den ej vill gå diagonalt
 	//cout << reg->region1.size << endl;
-	int currX = agent->getX();
+	int getX = agent->getX();
+	int getY = agent->getY();
 
 	if (diffX == 0 || diffY == 0)
 	{
@@ -572,15 +458,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 		// desX-getX()
 		//  151-150 = 
 		if (diffX < 0 ) {
-			p3 = std::make_pair(agent->getX(), agent->getY() + 1);
-			// go up in Y axis
-			p4 = std::make_pair(agent->getX(), agent->getY() - 1);
-			// go right in X axis
-			p5 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
-			// diagonalt nedåt
-			p6 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
-			// diagonalt upp
-			p7 = std::make_pair(agent->getX() + 1, agent->getY());
+			p3 = std::make_pair(getX, getY + 1);
+			p4 = std::make_pair(getX, getY - 1);
+			p5 = std::make_pair(getX + 1, getY + 1);
+			p6 = std::make_pair(getX + 1, getY - 1);
+			p7 = std::make_pair(getX + 1, getY);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -589,17 +471,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p7);
 		}
 		else if (diffX > 0 ) {
-
-			// go up in Y axis
-			//done
-			p3 = std::make_pair(agent->getX(), agent->getY() + 1);
-			p4 = std::make_pair(agent->getX(), agent->getY() - 1);
-			// diagonalt upp
-			p5 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
-			// diagonalt nedåt
-			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
-			// go left
-			p7 = std::make_pair(agent->getX() - 1, agent->getY());
+			p3 = std::make_pair(getX, getY + 1);
+			p4 = std::make_pair(getX, getY - 1);
+			p5 = std::make_pair(getX - 1, getY + 1);
+			p6 = std::make_pair(getX - 1, getY - 1);
+			p7 = std::make_pair(getX - 1, getY);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -608,18 +484,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p7);
 		}
 		else if (diffY < 0 ) {
-
-			// go left
-			//done
-
-			p3 = std::make_pair(agent->getX() - 1, agent->getY());
-			// go right
-			p4 = std::make_pair(agent->getX() - 1, agent->getY() + 1); 
-			// diagonalt höger
-			p5 = std::make_pair(agent->getX(), agent->getY() + 1);
-			// diagonalt vänster
-			p6 = std::make_pair(agent->getX() + 1, agent->getY());
-			p7 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
+			p3 = std::make_pair(getX - 1, getY);
+			p4 = std::make_pair(getX - 1, getY + 1);
+			p5 = std::make_pair(getX, getY + 1);
+			p6 = std::make_pair(getX + 1, getY);
+			p7 = std::make_pair(getX + 1, getY + 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -629,20 +498,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 
 		}
 		else if (diffY > 0 ) {
-
-			//cout << "getX= " << agent->getX() << ":::::::::" << "pDesired.first= " << pDesired.first << endl;
-			//
-			//done
-
-			p3 = std::make_pair(agent->getX() + 1, agent->getY());
-			// go right
-			p4 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
-			// go left
-			p5 = std::make_pair(agent->getX() - 1, agent->getY());
-			// diagonalt höger
-			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
-			// diagonalt upp
-			p7 = std::make_pair(agent->getX(), agent->getY() - 1);
+			p3 = std::make_pair(getX + 1, getY);
+			p4 = std::make_pair(getX + 1, getY - 1);
+			p5 = std::make_pair(getX - 1, getY);
+			p6 = std::make_pair(getX - 1, getY - 1);
+			p7 = std::make_pair(getX, getY - 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -661,17 +521,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 		//cout << "x value: " << agent->getX() << " :: y value: " << agent->getY() << " :: p2.first: " << p2.first << " :: p2.second: " << p1.second << endl;
 		//exit(0);
 		if (diffX < 0 && diffY < 0) {
-	
-
-			p3 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
-			// go right
-			p4 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
-			// go leftup
-			p5 = std::make_pair(agent->getX() + 1, agent->getY());
-			// go rightup
-			p6 = std::make_pair(agent->getX(), agent->getY() + 1);
-			// go rightdown
-			p7 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
+			p3 = std::make_pair(getX + 1, getY - 1);
+			p4 = std::make_pair(getX + 1, getY + 1);
+			p5 = std::make_pair(getX + 1, getY);
+			p6 = std::make_pair(getX, getY + 1);
+			p7 = std::make_pair(getX - 1, getY + 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -680,18 +534,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p7);
 		}
 		else if (diffX < 0 && diffY > 0) {
-
-
-
-			p3 = std::make_pair(agent->getX() + 1, agent->getY() + 1); 
-			// go right
-			p4 = std::make_pair(agent->getX() + 1, agent->getY() - 1);
-			// go leftdown
-			p5 = std::make_pair(agent->getX() + 1, agent->getY()); 
-			// go rightdown
-			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
-			// go rightup
-			p7 = std::make_pair(agent->getX(), agent->getY() - 1);
+			p3 = std::make_pair(getX + 1, getY + 1);
+			p4 = std::make_pair(getX + 1, getY - 1);
+			p5 = std::make_pair(getX + 1, getY);
+			p6 = std::make_pair(getX - 1, getY - 1);
+			p7 = std::make_pair(getX, getY - 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -700,19 +547,11 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p7);
 		}
 		else if (diffX > 0 && diffY < 0) {
-	
-
-
-			p3 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
-
-			// go left
-			p4 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
-			// go leftup
-			p5 = std::make_pair(agent->getX() - 1, agent->getY());
-			// go leftdown
-			p6 = std::make_pair(agent->getX() + 1, agent->getY() + 1);
-			// go rightdown
-			p7 = std::make_pair(agent->getX(), agent->getY() + 1);
+			p3 = std::make_pair(getX - 1, getY - 1);
+			p4 = std::make_pair(getX - 1, getY + 1);
+			p5 = std::make_pair(getX - 1, getY);
+			p6 = std::make_pair(getX + 1, getY + 1);
+			p7 = std::make_pair(getX, getY + 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
@@ -720,18 +559,12 @@ void Ped::Model::move(Ped::Tagent *agent)
 			prioritizedAlternatives.push_back(p6);
 			prioritizedAlternatives.push_back(p7);
 		}
-		// diffX > 0 && diffY > 0
 		else if (diffX > 0 && diffY > 0) {
-
-			p3 = std::make_pair(agent->getX() - 1, agent->getY() + 1);
-			// go left
-			p4 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
-			// go leftdown
-			p5 = std::make_pair(agent->getX() - 1, agent->getY());
-			// go leftup
-			p6 = std::make_pair(agent->getX() - 1, agent->getY() - 1);
-			// go rightup
-			p7 = std::make_pair(agent->getX(), agent->getY() - 1);
+			p3 = std::make_pair(getX - 1, getY + 1);
+			p4 = std::make_pair(getX - 1, getY - 1);
+			p5 = std::make_pair(getX - 1, getY);
+			p6 = std::make_pair(getX - 1, getY - 1);
+			p7 = std::make_pair(getX, getY - 1);
 
 			prioritizedAlternatives.push_back(p3);
 			prioritizedAlternatives.push_back(p4);
