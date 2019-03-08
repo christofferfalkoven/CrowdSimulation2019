@@ -200,9 +200,10 @@ __global__ void kernel_func_5(int *scaled_cuda, int *blurred_cuda) {
 void Ped::Model::updateHeatmapCuda()
 {
 	// for kernel func 1, fade
-	
-	kernel_func_1<<<SIZE, SIZE >>>(heatmap_cuda);
-	//cudaDeviceSynchronize();
+	cudaEvent_t start1, stop1; 
+	cudaEventCreate(&start1);
+	cudaEventCreate(&stop1);
+
 
 	// For kernel func 2, agents 
 	// Allocate arrs for taking care of this
@@ -216,39 +217,69 @@ void Ped::Model::updateHeatmapCuda()
 
 	cudaMemcpy(x_arr, x_arr_host, agents.size() * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(y_arr, y_arr_host, agents.size() * sizeof(int), cudaMemcpyHostToDevice);
+
+	cudaEventRecord(start1);
+	kernel_func_1<<<SIZE, SIZE >>>(heatmap_cuda);
+	
+
+
+	//cudaDeviceSynchronize();
+
 	// Ett block med agents.size() antal trådar
 	kernel_func_2<<<1, agents.size()>>>(heatmap_cuda, x_arr, y_arr);
 
-	//cudaDeviceSynchronize();
-	
-	// End
 
 	// For kernel func 3
 	//cudaMemcpy(heatmap_cuda, *heatmap, SIZE * SIZE * sizeof(int), cudaMemcpyHostToDevice);
 	kernel_func_3<<<SIZE, SIZE >>>(heatmap_cuda);
+	cudaEventRecord(stop1);
+
+
 
 	//cudaDeviceSynchronize();
 	//cudaMemcpy(*heatmap, heatmap_cuda, SIZE * SIZE * sizeof(int), cudaMemcpyDeviceToHost);
 	// For kernel func 4
 	//cudaMemcpy(heatmap_cuda, *heatmap, SIZE * SIZE * sizeof(int), cudaMemcpyHostToDevice);
+	cudaEvent_t start2, stop2;
+	cudaEventCreate(&start2);
+	cudaEventCreate(&stop2);
+
+	
 	dim3 dimBlock4(512, 2);
 	dim3 dimGrid4(512, 2);
+	cudaEventRecord(start2);
 	kernel_func_4<<<dimGrid4, dimBlock4 >>>(heatmap_cuda, scaled_cuda);
 	//cudaDeviceSynchronize();
+	cudaEventRecord(stop2);
 
 	// For kernel func 5
 	//cudaMemcpy(heatmap_cuda, *heatmap, SIZE * SIZE * sizeof(int), cudaMemcpyHostToDevice);
 	//cudaMemcpy(scaled_cuda, *scaled_heatmap, SCALED_SIZE * SCALED_SIZE * sizeof(int), cudaMemcpyHostToDevice);
 	/*cudaMemcpy(blurred_cuda, *blurred_heatmap, SCALED_SIZE * SCALED_SIZE * sizeof(int), cudaMemcpyHostToDevice);*/
-
+	cudaEvent_t start3, stop3;
+	cudaEventCreate(&start3);
+	cudaEventCreate(&stop3);
 	dim3 dimBlock(32, 32);
 	dim3 dimGrid(160, 160);
 
+	cudaEventRecord(start3);
 	kernel_func_5 <<<dimGrid, dimBlock >>>(scaled_cuda, blurred_cuda);
-
+	cudaEventRecord(stop3);
 
 	//cudaMemcpy(*scaled_heatmap, scaled_cuda, SCALED_SIZE * SCALED_SIZE * sizeof(int), cudaMemcpyDeviceToHost);
 	cudaMemcpy(*blurred_heatmap, blurred_cuda, SCALED_SIZE * SCALED_SIZE * sizeof(int), cudaMemcpyDeviceToHost);
+	
+
+	float timeMS = 0;
+	cudaEventElapsedTime(&timeMS, start1, stop1);
+	cout << "Time is: " << timeMS << endl;
+	float timeMS2 = 0;
+	cudaEventElapsedTime(&timeMS2, start2, stop2);
+	cout << "Time for kernelfunc4 is ...: " << timeMS2 << endl;
+
+	float timeMS3 = 0;
+	cudaEventElapsedTime(&timeMS3, start3, stop3);
+	cout << "Time for kernelfunc5 is ...: " << timeMS3 << endl;
 	//cudaMemcpy(*heatmap, heatmap_cuda, SIZE * SIZE * sizeof(int), cudaMemcpyDeviceToHost);
 	// Scale the data for visual representation
 	//for (int y = 0; y < SIZE; y++)
