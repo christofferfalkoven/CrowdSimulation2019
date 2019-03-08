@@ -49,7 +49,6 @@ void Ped::Model::setupHeatmapSeq()
 // Updates the heatmap according to the agent positions
 // TODO: Parallilize this using CUDA
 
-__global__ 
 void Ped::Model::updateHeatmapSeq()
 {
 

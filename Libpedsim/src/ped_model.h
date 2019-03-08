@@ -87,7 +87,7 @@ namespace Ped{
 		// The waypoints in this scenario
 		std::vector<Twaypoint*> destinations;
 
-
+		void Ped::Model::reg_func();
 		Ped::cool_agent *a;
 
 		// Moves an agent towards its next position
@@ -123,6 +123,9 @@ namespace Ped{
 		int *blurred_cuda;
 		int *x_arr;
 		int *y_arr;
+
+		int *x_arr_host;
+		int *y_arr_host;
 
 		void setupHeatmapSeq();
 		void updateHeatmapSeq();

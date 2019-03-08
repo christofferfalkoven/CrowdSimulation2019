@@ -63,7 +63,7 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario, std::vector<T
 		a = new Ped::cool_agent(b); 
 	}
 	
-	if (implementation == OMP) {
+	//if (implementation == OMP) {
 		//std::vector<Tagent*> reg = new Ped::region(agents);
 		// get all the agents and save i vector
 		std::vector<Tagent *> b = getAgents(); 
@@ -71,12 +71,67 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario, std::vector<T
 		reg = new Ped::region(b);
 
 		//cout << reg << endl;
-	}
+	//}
 	// Set up heatmap (relevant for Assignment 4)
 	setupHeatmapCuda();
+	omp_set_num_threads(4);
 }
 
+void Ped::Model::reg_func() {
+	size_t size = agents.size();
+	int i = 0;
 
+	#pragma omp parallel sections 
+	{
+		#pragma omp section 
+		{
+			tick_move_func_reg1();
+			if (!reg->region1ToRemove.empty()) {
+				for (int n = 0; n < reg->region1ToRemove.size(); n++) {
+					reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n]) - n));
+				}
+				reg->region1ToRemove.clear();
+			}
+
+
+		}
+
+		#pragma omp section 
+		{
+			tick_move_func_reg2();
+			if (!reg->region2ToRemove.empty()) {
+				for (int n = 0; n < reg->region2ToRemove.size(); n++) {
+					reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
+				}
+				reg->region2ToRemove.clear();
+			}
+		}
+
+		#pragma omp section 
+		{
+			tick_move_func_reg3();
+			if (!reg->region3ToRemove.empty()) {
+
+				for (int n = 0; n < reg->region3ToRemove.size(); n++) {
+					reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
+				}
+				reg->region3ToRemove.clear();
+			}
+		}
+
+		#pragma omp section 
+		{
+			tick_move_func_reg4();
+			if (!reg->region4ToRemove.empty()) {
+				for (int n = 0; n < reg->region4ToRemove.size(); n++) {
+					//cout << get<1>(reg->region1ToRemove[n]) << endl;
+					reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
+				}
+				reg->region4ToRemove.clear();
+			}
+		}
+	}
+}
 
 
 
@@ -85,58 +140,16 @@ void Ped::Model::tick()
 	
 	// OMP 
 	if (implementation == Ped::OMP) {
-		omp_set_num_threads(4);
-		size_t size = agents.size();
-		int i = 0;
-
-		#pragma omp parallel sections 
+		#pragma omp parallel
 		{
-			#pragma omp section 
+			// parallell block, en tråd kör reg func och en tr¨åd kör update
+			#pragma omp single nowait
 			{
-				tick_move_func_reg1();
-				if (!reg->region1ToRemove.empty()) {
-					for (int n = 0; n < reg->region1ToRemove.size(); n++) {
-						reg->region1.erase(reg->region1.begin() + (get<1>(reg->region1ToRemove[n]) - n));
-					}
-					reg->region1ToRemove.clear();
-				}
-
-
+				reg_func();
 			}
-
-			#pragma omp section 
+			#pragma omp single nowait
 			{
-				tick_move_func_reg2();
-				if (!reg->region2ToRemove.empty()) {
-					for (int n = 0; n < reg->region2ToRemove.size(); n++) {
-						reg->region2.erase(reg->region2.begin() + (get<1>(reg->region2ToRemove[n]) - n));
-					}
-					reg->region2ToRemove.clear();
-				}
-			}
-
-			#pragma omp section 
-			{
-				tick_move_func_reg3();
-				if (!reg->region3ToRemove.empty()) {
-					
-					for (int n = 0; n < reg->region3ToRemove.size(); n++) {
-						reg->region3.erase(reg->region3.begin() + (get<1>(reg->region3ToRemove[n]) - n));
-					}
-					reg->region3ToRemove.clear();
-				}
-			}
-
-			#pragma omp section 
-			{
-				tick_move_func_reg4();
-				if (!reg->region4ToRemove.empty()) {
-					for (int n = 0; n < reg->region4ToRemove.size(); n++) {
-						//cout << get<1>(reg->region1ToRemove[n]) << endl;
-						reg->region4.erase(reg->region4.begin() + (get<1>(reg->region4ToRemove[n]) - n));
-					}
-					reg->region4ToRemove.clear();
-				}
+				updateHeatmapCuda();
 			}
 		}
 	}
@@ -161,8 +174,12 @@ void Ped::Model::tick()
 	
 	// SEQ
 	else if (implementation == Ped::SEQ) {
-		tick_heat(); 
-		/*for (Ped::Tagent* agent : agents) {
+		reg_func();
+		updateHeatmapSeq();
+		
+		
+		//tick_heat(); 
+	/*	for (Ped::Tagent* agent : agents) {
 			tick_one(agent);
 		}*/
 		
